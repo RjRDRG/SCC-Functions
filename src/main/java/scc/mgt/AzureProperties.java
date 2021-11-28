@@ -8,7 +8,7 @@ public class AzureProperties
 	public static final String PROPS_FILE = "azurekeys-westeurope.props";
 	private static Properties props;
 
-	public static synchronized Properties getProperties() {
+	private static synchronized Properties getProperties() {
 		if( props == null || props.size() == 0) {
 			props = new Properties();
 			try {
@@ -21,15 +21,6 @@ public class AzureProperties
 	}
 
 	public static String getProperty(String key) {
-		String val = null;
-		try {
-			val = System.getenv( key);
-		} catch( Exception e) {
-			// do nothing
-		}
-		if( val != null)
-			return val;
-		val = getProperties().getProperty(key);
-		return val;
+		return getProperties().getProperty(key);
 	}
 }

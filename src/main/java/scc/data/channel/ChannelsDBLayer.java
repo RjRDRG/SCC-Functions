@@ -2,18 +2,22 @@ package scc.data.channel;
 
 import com.azure.cosmos.*;
 import com.azure.cosmos.models.CosmosItemRequestOptions;
-import com.azure.cosmos.models.CosmosItemResponse;
 import com.azure.cosmos.models.CosmosQueryRequestOptions;
 import com.azure.cosmos.models.PartitionKey;
-import com.azure.cosmos.util.CosmosPagedIterable;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import redis.clients.jedis.JedisPool;
-import scc.cache.RedisCache;
+import scc.cache.Cache;
 import scc.mgt.AzureProperties;
 
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.NotFoundException;
+import java.util.List;
+import java.util.stream.Collectors;
+
 public class ChannelsDBLayer {
-	private static final String DB_NAME = "scc2122db";
+    private static final String DB_NAME = "scc2122db";
+	public static final String CHANNEL = "channel:";
 
 	private static ChannelsDBLayer instance;
 
@@ -25,7 +29,7 @@ public class ChannelsDBLayer {
 					.gatewayMode() // replace by .directMode() for better performance
 					.consistencyLevel(ConsistencyLevel.SESSION).connectionSharingAcrossClientsEnabled(true)
 					.contentResponseOnWriteEnabled(true).buildClient();
-			JedisPool cache = RedisCache.getCachePool();
+			JedisPool cache = Cache.getInstance();
 			instance = new ChannelsDBLayer(client,cache);
 		}
 
@@ -33,9 +37,9 @@ public class ChannelsDBLayer {
 	}
 
 	private final CosmosClient client;
-	private CosmosDatabase db;
-	private CosmosContainer channels;
 	private final JedisPool cache;
+
+	private CosmosContainer channels;
 
 	public ChannelsDBLayer(CosmosClient client, JedisPool cache) {
 		this.client = client;
@@ -43,54 +47,66 @@ public class ChannelsDBLayer {
 	}
 
 	private synchronized void init() {
-		if (db != null) return;
-		db = client.getDatabase(DB_NAME);
+		if (channels != null) return;
+		CosmosDatabase db = client.getDatabase(DB_NAME);
 		channels = db.getContainer("Channels");
 	}
 
-	public CosmosItemResponse<Object> delChannelById(String id) {
+	public void delChannelById(String id) {
 		init();
-		PartitionKey key = new PartitionKey(id);
-		cache.getResource().del("channel: " + id);
-		return channels.deleteItem(id, key, new CosmosItemRequestOptions());
+		cache.getResource().del(CHANNEL + id);
+		if(channels.deleteItem(id, new PartitionKey(id), new CosmosItemRequestOptions()).getStatusCode() >= 400)
+			throw new BadRequestException();
 	}
 
-	public CosmosItemResponse<Object> delChannel(ChannelDAO channel) {
+	public void discardChannelById(String id) {
 		init();
-		cache.getResource().del("channel: " + channel.getIdChannel());
-		return channels.deleteItem(channel, new CosmosItemRequestOptions());
+		ChannelDAO channelDAO = getChannelById(id);
+		channelDAO.setGarbage(true);
+		updateChannel(channelDAO);
 	}
 
-	public CosmosItemResponse<ChannelDAO> putChannel(ChannelDAO channel) {
+	public void createChannel(ChannelDAO channel) {
 		init();
 		try {
-			cache.getResource().set("channel:" + channel.getIdChannel(), new ObjectMapper().writeValueAsString(channel));
+			cache.getResource().set(CHANNEL + channel.getId(), new ObjectMapper().writeValueAsString(channel));
 		} catch (JsonProcessingException e) {
 			e.printStackTrace();
 		}
-		return channels.createItem(channel);
+		if(channels.createItem(channel).getStatusCode() >= 400)
+			throw new BadRequestException();
 	}
 
-	public CosmosPagedIterable<ChannelDAO> getChannelById(String id) {
+	public ChannelDAO getChannelById(String id) {
 		init();
+		String res = cache.getResource().get(CHANNEL + id);
+		if (res != null) {
+			try {
+				return new ObjectMapper().readValue(res, ChannelDAO.class);
+			} catch (JsonProcessingException e) {
+				e.printStackTrace();
+			}
+		}
 		return channels.queryItems("SELECT * FROM Channels WHERE Channels.id=\"" + id + "\"",
-				new CosmosQueryRequestOptions(), ChannelDAO.class);
+				new CosmosQueryRequestOptions(), ChannelDAO.class).stream().findFirst()
+				.orElseThrow(NotFoundException::new);
 	}
 
-	public CosmosPagedIterable<ChannelDAO> getChannels(int offset, int limit) {
+	public List<ChannelDAO> getDeletedChannels() {
 		init();
-		return channels.queryItems("SELECT * FROM Channels OFFSET " + offset + " LIMIT " + limit,
-				new CosmosQueryRequestOptions(), ChannelDAO.class);
+		return channels.queryItems("SELECT * FROM Channels WHERE Channels.garbage = 1 OFFSET " + 0 + "LIMIT " + 10000,
+						new CosmosQueryRequestOptions(), ChannelDAO.class).stream().collect(Collectors.toList());
 	}
-	
-	public CosmosItemResponse<ChannelDAO> updateChannel(ChannelDAO channel) {
+
+	public void updateChannel(ChannelDAO channel) {
 		init();
 		try {
-			cache.getResource().set("channel:" + channel.getIdChannel(), new ObjectMapper().writeValueAsString(channel));
+			cache.getResource().set(CHANNEL + channel.getId(), new ObjectMapper().writeValueAsString(channel));
 		} catch (JsonProcessingException e) {
 			e.printStackTrace();
 		}
-		return channels.replaceItem(channel, channel.get_rid(),new PartitionKey(channel.getIdChannel()), new CosmosItemRequestOptions());
+		if(channels.replaceItem(channel, channel.getId(), new PartitionKey(channel.getId()), new CosmosItemRequestOptions()).getStatusCode() >= 400)
+			throw new BadRequestException();
 	}
 
 	public void close() {

@@ -4,12 +4,9 @@ import com.azure.core.util.BinaryData;
 import com.azure.storage.blob.BlobClient;
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobContainerClientBuilder;
-import com.azure.storage.blob.models.BlobItem;
 import scc.mgt.AzureProperties;
-import javax.ws.rs.NotFoundException;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import javax.ws.rs.NotFoundException;
 
 public class MediaBlobLayer {
 
@@ -18,7 +15,7 @@ public class MediaBlobLayer {
 	public static MediaBlobLayer getInstance() {
 		if(instance == null) {
 			BlobContainerClient containerClient = new BlobContainerClientBuilder()
-					.connectionString(AzureProperties.getProperty("BlobStoreConnection"))
+					.connectionString(AzureProperties.getProperty( "BlobStoreConnection"))
 					.containerName("images")
 					.buildClient();
 			instance = new MediaBlobLayer(containerClient);
@@ -45,9 +42,9 @@ public class MediaBlobLayer {
 
 		return result.downloadContent().toBytes();	
 	}
-	
 
-	public List<String> list() {
-		return containerClient.listBlobs().stream().map(BlobItem::getName).collect(Collectors.toList());
+	public void delete(String id) {
+		BlobClient result = containerClient.getBlobClient(id);
+		result.delete();
 	}
 }
