@@ -69,7 +69,9 @@ public class UsersDBLayer {
 
 	public void delUserById(String id) {
 		init();
-		cache.getResource().del(USER + id);
+		if(cache!=null) {
+			cache.getResource().del(USER + id);
+		}
 		PartitionKey key = new PartitionKey(id);
 		if(users.deleteItem(id, key, new CosmosItemRequestOptions()).getStatusCode() >= 400)
 			throw new BadRequestException();
@@ -77,10 +79,12 @@ public class UsersDBLayer {
 	
 	public void createUser(UserDAO user) {
 		init();
-		try {
-			cache.getResource().set(USER + user.getId(), new ObjectMapper().writeValueAsString(user));
-		} catch (JsonProcessingException e) {
-			e.printStackTrace();
+		if(cache!=null) {
+			try {
+				cache.getResource().set(USER + user.getId(), new ObjectMapper().writeValueAsString(user));
+			} catch (JsonProcessingException e) {
+				e.printStackTrace();
+			}
 		}
 		if(users.createItem(user).getStatusCode() >= 400)
 			throw new BadRequestException();
@@ -88,12 +92,14 @@ public class UsersDBLayer {
 	
 	public UserDAO getUserById(String id) {
 		init();
-		String res = cache.getResource().get(USER + id);
-		if (res != null) {
-			try {
-				return new ObjectMapper().readValue(res, UserDAO.class);
-			} catch (JsonProcessingException e) {
-				e.printStackTrace();
+		if(cache!=null) {
+			String res = cache.getResource().get(USER + id);
+			if (res != null) {
+				try {
+					return new ObjectMapper().readValue(res, UserDAO.class);
+				} catch (JsonProcessingException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 		return users.queryItems("SELECT * FROM Users WHERE Users.id=\"" + id + "\"", new CosmosQueryRequestOptions(), UserDAO.class)
@@ -102,13 +108,13 @@ public class UsersDBLayer {
 	
 	public void updateUser(UserDAO user) {
 		init();
-
-		try {
-			cache.getResource().set(USER + user.getId(), new ObjectMapper().writeValueAsString(user));
-		} catch (JsonProcessingException e) {
-			e.printStackTrace();
+		if(cache!=null) {
+			try {
+				cache.getResource().set(USER + user.getId(), new ObjectMapper().writeValueAsString(user));
+			} catch (JsonProcessingException e) {
+				e.printStackTrace();
+			}
 		}
-
 		if(users.replaceItem(user, user.getId(),new PartitionKey(user.getId()), new CosmosItemRequestOptions()).getStatusCode() >= 400)
 			throw new BadRequestException();
 	}
@@ -126,11 +132,12 @@ public class UsersDBLayer {
 
 	public void putSession(Session s) {
 		init();
-
-		try {
-			cache.getResource().set(s.getSessionId(), new ObjectMapper().writeValueAsString(s));
-		} catch (JsonProcessingException e) {
-			e.printStackTrace();
+		if(cache!=null) {
+			try {
+				cache.getResource().set(s.getSessionId(), new ObjectMapper().writeValueAsString(s));
+			} catch (JsonProcessingException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
