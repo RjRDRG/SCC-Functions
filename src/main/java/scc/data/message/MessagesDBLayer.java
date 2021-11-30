@@ -89,9 +89,6 @@ public class MessagesDBLayer {
 				}
 			}
 		}
-
-		if(msg.getIdPhoto() != null && msg.getIdPhoto().equals(""))
-			MediaBlobLayer.getInstance().delete(msg.getIdPhoto());
 	}
 	
 	public void putMsg(MessageDAO msg) {
@@ -152,7 +149,7 @@ public class MessagesDBLayer {
 		if(limit > cachedMessages) {
 			messageDAOS.addAll(
 					messages.queryItems(
-							"SELECT * FROM Messages WHERE Messages.channel=\"" + channel + "\" ORDER BY Messages._ts DESC OFFSET " + (off + cachedMessages) + "LIMIT " + (limit - cachedMessages),
+							"SELECT * FROM Messages WHERE Messages.channel=\"" + channel + "\" ORDER BY Messages._ts DESC OFFSET " + (off + cachedMessages) + " LIMIT " + (limit - cachedMessages),
 							new CosmosQueryRequestOptions(), MessageDAO.class
 					)
 					.stream().collect(Collectors.toList())
@@ -192,10 +189,19 @@ public class MessagesDBLayer {
 
 	public void deleteChannelsMessages(String channel) {
 		init();
+
+		List<MessageDAO> messageDAOS = messages.queryItems(
+				"SELECT * FROM Messages WHERE Messages.channel=\"" + channel + "\"",
+				new CosmosQueryRequestOptions(), MessageDAO.class
+		).stream().collect(Collectors.toList());
+
+		for(MessageDAO messageDAO : messageDAOS) {
+			messages.deleteItem(messageDAO, new CosmosItemRequestOptions());
+		}
+
 		if(cache!=null) {
 			cache.getResource().del(RECENT_MSGS + channel);
 		}
-		messages.queryItems("DELETE FROM Messages WHERE Messages.channel=" + channel, new CosmosQueryRequestOptions(), MessageDAO.class);
 	}
 
 	public void close() {

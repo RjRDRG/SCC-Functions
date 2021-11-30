@@ -18,7 +18,7 @@ import scc.data.user.UsersDBLayer;
  */
 public class TimerFunction {
     @FunctionName("gc-channels")
-    public void garbageCollectChannels( @TimerTrigger(name = "periodicSetTime", schedule = "1 /10 * * * * *") String timerInfo, ExecutionContext context) {
+    public void garbageCollectChannels( @TimerTrigger(name = "periodicSetTime", schedule = "0 */1 * * * *") String timerInfo, ExecutionContext context) {
         for (ChannelDAO channelDAO : ChannelsDBLayer.getInstance().getDeletedChannels()) {
             MessagesDBLayer.getInstance().deleteChannelsMessages(channelDAO.getId());
             ChannelsDBLayer.getInstance().delChannelById(channelDAO.getId());
@@ -26,7 +26,7 @@ public class TimerFunction {
     }
 
     @FunctionName("gc-users")
-    public void garbageCollectUsers( @TimerTrigger(name = "periodicSetTime", schedule = "1 /10 * * * * *") String timerInfo, ExecutionContext context) {
+    public void garbageCollectUsers( @TimerTrigger(name = "periodicSetTime", schedule = "0 */1 * * * *") String timerInfo, ExecutionContext context) {
         for (UserDAO userDAO : UsersDBLayer.getInstance().getDeletedUsers()) {
             for(MessageDAO msg : MessagesDBLayer.getInstance().getMsgsSentByUser(userDAO.getId())) {
                 msg.setSend("NA");
