@@ -12,7 +12,7 @@ public class AzureProperties
 		if( props == null || props.size() == 0) {
 			props = new Properties();
 			try {
-				props.load( new FileInputStream("WEB-INF/" + PROPS_FILE));
+				props.load( new FileInputStream("PROPS/" + PROPS_FILE));
 			} catch (Exception e) {
 				// do nothing
 			}

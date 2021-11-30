@@ -1,6 +1,1 @@
 mvn compile package azure-functions:deploy
-
-az functionapp config appsettings set \
---name functions name \
---resource-group functions group \
---settings "AzureCosmosDBConnection=AccountEndpoint=<url>;AccountKey=<key>;

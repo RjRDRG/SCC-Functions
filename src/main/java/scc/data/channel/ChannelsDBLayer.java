@@ -100,7 +100,7 @@ public class ChannelsDBLayer {
 
 	public List<ChannelDAO> getDeletedChannels() {
 		init();
-		return channels.queryItems("SELECT * FROM Channels WHERE Channels.garbage = 1 OFFSET " + 0 + "LIMIT " + 10000,
+		return channels.queryItems("SELECT * FROM Channels WHERE Channels.garbage = 1 OFFSET " + 0 + "LIMIT " + 100,
 						new CosmosQueryRequestOptions(), ChannelDAO.class).stream().collect(Collectors.toList());
 	}
 
