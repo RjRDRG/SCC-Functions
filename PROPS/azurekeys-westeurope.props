@@ -5,4 +5,3 @@ COSMOSDB_URL=https://scc2122rjr.documents.azure.com:443/
 COSMOSDB_DATABASE=scc2122db
 REDIS_KEY=WSQ623WwJAjxgi8G83w9ihbV1hGBwq8zAAzCaLltc6E=
 REDIS_URL=rediswesteuroperjr.redis.cache.windows.net
-ENABLE_AUTH=true

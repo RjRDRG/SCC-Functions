@@ -127,7 +127,7 @@ public class UsersDBLayer {
 
     public List<UserDAO> getDeletedUsers() {
 		init();
-		return users.queryItems("SELECT * FROM Users WHERE garbage = 1 OFFSET " + 0 + "LIMIT " + 10000, new CosmosQueryRequestOptions(), UserDAO.class).stream().collect(Collectors.toList());
+		return users.queryItems("SELECT * FROM Users WHERE garbage = 1 OFFSET " + 0 + "LIMIT " + 100, new CosmosQueryRequestOptions(), UserDAO.class).stream().collect(Collectors.toList());
 	}
 
 	public void putSession(Session s) {
