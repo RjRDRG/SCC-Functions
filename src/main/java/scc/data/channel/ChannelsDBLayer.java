@@ -12,6 +12,7 @@ import scc.mgt.AzureProperties;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
+import javax.ws.rs.WebApplicationException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -57,8 +58,8 @@ public class ChannelsDBLayer {
 		if(cache!=null) {
 			cache.getResource().del(CHANNEL + id);
 		}
-		if(channels.deleteItem(id, new PartitionKey(id), new CosmosItemRequestOptions()).getStatusCode() >= 400)
-			throw new BadRequestException();
+		int status = channels.deleteItem(id, new PartitionKey(id), new CosmosItemRequestOptions()).getStatusCode();
+		if(status >= 400) throw new WebApplicationException(status);
 	}
 
 	public void discardChannelById(String id) {
@@ -77,8 +78,8 @@ public class ChannelsDBLayer {
 				e.printStackTrace();
 			}
 		}
-		if(channels.createItem(channel).getStatusCode() >= 400)
-			throw new BadRequestException();
+		int status = channels.createItem(channel).getStatusCode();
+		if(status >= 400) throw new WebApplicationException(status);
 	}
 
 	public ChannelDAO getChannelById(String id) {

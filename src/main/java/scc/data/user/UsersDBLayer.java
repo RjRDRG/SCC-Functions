@@ -14,6 +14,7 @@ import scc.mgt.AzureProperties;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.NotFoundException;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Cookie;
 import java.util.List;
 import java.util.Optional;
@@ -73,8 +74,8 @@ public class UsersDBLayer {
 			cache.getResource().del(USER + id);
 		}
 		PartitionKey key = new PartitionKey(id);
-		if(users.deleteItem(id, key, new CosmosItemRequestOptions()).getStatusCode() >= 400)
-			throw new BadRequestException();
+		int status = users.deleteItem(id, key, new CosmosItemRequestOptions()).getStatusCode();
+		if(status >= 400) throw new WebApplicationException(status);
 	}
 	
 	public void createUser(UserDAO user) {
@@ -86,8 +87,8 @@ public class UsersDBLayer {
 				e.printStackTrace();
 			}
 		}
-		if(users.createItem(user).getStatusCode() >= 400)
-			throw new BadRequestException();
+		int status = users.createItem(user).getStatusCode();
+		if(status >= 400) throw new WebApplicationException(status);
 	}
 	
 	public UserDAO getUserById(String id) {

@@ -8,11 +8,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import redis.clients.jedis.JedisPool;
 import scc.cache.Cache;
-import scc.data.media.MediaBlobLayer;
 import scc.mgt.AzureProperties;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
+import javax.ws.rs.WebApplicationException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -103,8 +103,8 @@ public class MessagesDBLayer {
 				throw new RuntimeException(e);
 			}
 		}
-		if(messages.createItem(msg).getStatusCode() >= 400)
-			throw new BadRequestException();
+		int status = messages.createItem(msg).getStatusCode();
+		if(status >= 400) throw new WebApplicationException(status);
 	}
 	
 	public MessageDAO getMsgById(String id) {
@@ -184,8 +184,8 @@ public class MessagesDBLayer {
 				}
 			}
 		}
-		if(messages.replaceItem(msg, msg.getId(), new PartitionKey(msg.getChannel()), new CosmosItemRequestOptions()).getStatusCode() >= 400)
-			throw new BadRequestException();
+		int status = messages.replaceItem(msg, msg.getId(), new PartitionKey(msg.getChannel()), new CosmosItemRequestOptions()).getStatusCode();
+		if(status >= 400) throw new WebApplicationException(status);
 	}
 
 	public void deleteChannelsMessages(String channel) {
