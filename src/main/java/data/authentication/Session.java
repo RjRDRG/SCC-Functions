@@ -1,4 +1,4 @@
-package scc.data.authentication;
+package data.authentication;
 
 import java.util.UUID;
 
@@ -7,9 +7,7 @@ public class Session {
 	private String idUser;
 	private String sessionId;
 
-	public Session() {
-		
-	}
+	public Session() {}
 
 	public Session(String idUser) {
 		this.sessionId = "session:"+ UUID.randomUUID();

@@ -1,10 +1,11 @@
 package scc.serverless;
 
+import cache.Cache;
 import com.microsoft.azure.functions.annotation.*;
 
+import data.media.MediaBlobLayer;
+import data.message.MessageDAO;
 import redis.clients.jedis.Jedis;
-import scc.cache.Cache;
-import scc.data.message.MessageDAO;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,6 +17,7 @@ import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -27,6 +29,9 @@ public class CosmosDBFunction {
     public void updateCacheMsg(
             @CosmosDBTrigger(name = "cosmosTest", databaseName = "scc2122db", collectionName = "Messages", createLeaseCollectionIfNotExists = true, connectionStringSetting = "AzureCosmosDBConnection") String[] msgs,
             final ExecutionContext context) {
+        if(!Boolean.parseBoolean(Optional.ofNullable(System.getenv("ENABLE_CACHE")).orElse("true")))
+            return;
+
         try (Jedis jedis = Cache.getInstance().getResource()) {
             ObjectMapper mapper = new ObjectMapper();
             List<MessageDAO> messageDAOS = Arrays.stream(msgs).map(s ->{  //TODO test if message at 0 is newest message

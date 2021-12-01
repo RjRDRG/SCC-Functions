@@ -1,4 +1,4 @@
-package scc.data.user;
+package data.user;
 
 import java.util.Arrays;
 

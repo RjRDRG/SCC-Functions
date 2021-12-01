@@ -1,4 +1,4 @@
-package scc.data.message;
+package data.message;
 
 public class Message {
 	private String id;

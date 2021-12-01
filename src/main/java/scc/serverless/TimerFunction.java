@@ -1,38 +1,49 @@
 package scc.serverless;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.functions.annotation.*;
 import com.microsoft.azure.functions.*;
-import redis.clients.jedis.Jedis;
-import scc.cache.Cache;
-import scc.data.channel.ChannelDAO;
-import scc.data.channel.ChannelsDBLayer;
-import scc.data.message.MessageDAO;
-import scc.data.message.MessagesDBLayer;
-import scc.data.user.UserDAO;
-import scc.data.user.UsersDBLayer;
+import data.channel.ChannelDAO;
+import data.channel.ChannelsDBLayer;
+import data.message.MessageDAO;
+import data.message.MessagesDBLayer;
+import data.user.UserDAO;
+import data.user.UsersDBLayer;
 
 /**
  * Azure Functions with Timer Trigger.
  */
 public class TimerFunction {
+
+    private boolean started = false;
+    private MessagesDBLayer messagesDBLayer;
+    private ChannelsDBLayer channelsDBLayer;
+    private UsersDBLayer usersDBLayer;
+
+    private void start() {
+        if(!started) {
+            messagesDBLayer = new MessagesDBLayer();
+            channelsDBLayer = new ChannelsDBLayer();
+            usersDBLayer = new UsersDBLayer();
+            started = true;
+        }
+    }
+
     @FunctionName("gc-channels")
     public void garbageCollectChannels( @TimerTrigger(name = "periodicSetTime", schedule = "0 */1 * * * *") String timerInfo, ExecutionContext context) {
-        for (ChannelDAO channelDAO : ChannelsDBLayer.getInstance().getDeletedChannels()) {
-            MessagesDBLayer.getInstance().deleteChannelsMessages(channelDAO.getId());
-            ChannelsDBLayer.getInstance().delChannelById(channelDAO.getId());
+        for (ChannelDAO channelDAO : channelsDBLayer.getDeletedChannels()) {
+            messagesDBLayer.deleteChannelsMessages(channelDAO.getId());
+            channelsDBLayer.delChannelById(channelDAO.getId());
         }
     }
 
     @FunctionName("gc-users")
     public void garbageCollectUsers( @TimerTrigger(name = "periodicSetTime", schedule = "0 */1 * * * *") String timerInfo, ExecutionContext context) {
-        for (UserDAO userDAO : UsersDBLayer.getInstance().getDeletedUsers()) {
-            for(MessageDAO msg : MessagesDBLayer.getInstance().getMsgsSentByUser(userDAO.getId())) {
+        for (UserDAO userDAO : usersDBLayer.getDeletedUsers()) {
+            for(MessageDAO msg : messagesDBLayer.getMsgsSentByUser(userDAO.getId())) {
                 msg.setUser("NA");
-                MessagesDBLayer.getInstance().updateMessage(msg);
+                messagesDBLayer.updateMessage(msg);
             }
-            UsersDBLayer.getInstance().delUserById(userDAO.getId());
+            usersDBLayer.delUserById(userDAO.getId());
         }
     }
 }

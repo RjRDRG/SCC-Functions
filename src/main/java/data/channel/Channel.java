@@ -1,4 +1,4 @@
-package scc.data.channel;
+package data.channel;
 
 import java.util.Arrays;
 
