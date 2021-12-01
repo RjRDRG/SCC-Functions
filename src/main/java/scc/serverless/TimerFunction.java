@@ -29,11 +29,7 @@ public class TimerFunction {
     public void garbageCollectUsers( @TimerTrigger(name = "periodicSetTime", schedule = "0 */1 * * * *") String timerInfo, ExecutionContext context) {
         for (UserDAO userDAO : UsersDBLayer.getInstance().getDeletedUsers()) {
             for(MessageDAO msg : MessagesDBLayer.getInstance().getMsgsSentByUser(userDAO.getId())) {
-                msg.setSend("NA");
-                MessagesDBLayer.getInstance().updateMessage(msg);
-            }
-            for(MessageDAO msg : MessagesDBLayer.getInstance().getMsgsReceivedByUser(userDAO.getId())) {
-                msg.setDest("NA");
+                msg.setUser("NA");
                 MessagesDBLayer.getInstance().updateMessage(msg);
             }
             UsersDBLayer.getInstance().delUserById(userDAO.getId());

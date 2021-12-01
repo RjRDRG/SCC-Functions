@@ -5,8 +5,7 @@ public class MessageDAO {
 	private String _rid;
 	private String _ts;
 	private String id;
-	private String send;
-	private String dest;
+	private String user;
 	private String text;
 	private String idPhoto;
 	private String channel;
@@ -15,14 +14,13 @@ public class MessageDAO {
 	public MessageDAO() {}
 
 	public MessageDAO(Message msg) {
-		this(msg.getId(), msg.getSend(), msg.getDest(), msg.getText(), msg.getIdPhoto(), msg.getChannel(), msg.getReplied());
+		this(msg.getId(), msg.getUser(), msg.getText(), msg.getIdPhoto(), msg.getChannel(), msg.getReplied());
 	}
 
-	public MessageDAO(String id, String send, String dest, String text, String idPhoto, String channel, String replied) {
+	public MessageDAO(String id, String user, String text, String idPhoto, String channel, String replied) {
 		super();
 		this.id = id;
-		this.send = send;
-		this.dest = dest;
+		this.user = user;
 		this.text = text;
 		this.idPhoto = idPhoto;
 
@@ -31,7 +29,7 @@ public class MessageDAO {
 	}
 
 	public Message toMessage() {
-		return new Message(id, send, dest, text, idPhoto, channel, replied);
+		return new Message(id, user, text, idPhoto, channel, replied);
 	}
 
 	public String get_rid() {
@@ -58,20 +56,12 @@ public class MessageDAO {
 		this.id = id;
 	}
 
-	public String getSend() {
-		return send;
+	public String getUser() {
+		return user;
 	}
 
-	public void setSend(String send) {
-		this.send = send;
-	}
-
-	public String getDest() {
-		return dest;
-	}
-
-	public void setDest(String dest) {
-		this.dest = dest;
+	public void setUser(String user) {
+		this.user = user;
 	}
 
 	public String getText() {
@@ -113,8 +103,7 @@ public class MessageDAO {
 				"_rid='" + _rid + '\'' +
 				", _ts='" + _ts + '\'' +
 				", id='" + id + '\'' +
-				", send='" + send + '\'' +
-				", dest='" + dest + '\'' +
+				", user='" + user + '\'' +
 				", text='" + text + '\'' +
 				", idPhoto='" + idPhoto + '\'' +
 				", channel='" + channel + '\'' +

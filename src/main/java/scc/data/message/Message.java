@@ -2,8 +2,7 @@ package scc.data.message;
 
 public class Message {
 	private String id;
-	private String send;
-	private String dest;
+	private String user;
 	private String text;
 	private String idPhoto;
 	private String channel;
@@ -12,11 +11,10 @@ public class Message {
 	public Message() {
 	}
 
-	public Message(String id, String dest, String send, String text, String idPhoto, String channel, String replied) {
+	public Message(String id, String user, String text, String idPhoto, String channel, String replied) {
 		super();
 		this.id = id;
-		this.dest = dest;
-		this.send = send;
+		this.user = user;
 		this.text = text;
 		this.idPhoto = idPhoto;
 		this.replied = replied;
@@ -31,20 +29,12 @@ public class Message {
 		this.id = id;
 	}
 
-	public String getSend() {
-		return send;
+	public String getUser() {
+		return user;
 	}
 
-	public void setSend(String send) {
-		this.send = send;
-	}
-
-	public String getDest() {
-		return dest;
-	}
-
-	public void setDest(String dest) {
-		this.dest = dest;
+	public void setUser(String user) {
+		this.user = user;
 	}
 
 	public String getText() {
@@ -83,8 +73,7 @@ public class Message {
 	public String toString() {
 		return "Message{" +
 				"id='" + id + '\'' +
-				", send='" + send + '\'' +
-				", dest='" + dest + '\'' +
+				", user='" + user + '\'' +
 				", text='" + text + '\'' +
 				", idPhoto='" + idPhoto + '\'' +
 				", channel='" + channel + '\'' +

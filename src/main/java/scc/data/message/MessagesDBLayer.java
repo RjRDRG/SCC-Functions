@@ -132,8 +132,7 @@ public class MessagesDBLayer {
 
 		if(cache!=null) {
 			if (off < MAX_MSG_IN_CACHE) {
-				cachedMessages = Math.min(limit, MAX_MSG_IN_CACHE - off);
-				messageDAOS.addAll(cache.getResource().lrange(RECENT_MSGS + channel, off, Math.min(limit - 1, MAX_MSG_IN_CACHE - 1)).stream().map(
+				List<MessageDAO> cacheMsgs = cache.getResource().lrange(RECENT_MSGS + channel, off, Math.min(limit - 1, MAX_MSG_IN_CACHE - 1)).stream().map(
 						s -> {
 							try {
 								return m.readValue(s, MessageDAO.class);
@@ -142,17 +141,19 @@ public class MessagesDBLayer {
 								throw new RuntimeException(e);
 							}
 						}
-				).collect(Collectors.toList()));
+				).collect(Collectors.toList());
+				cachedMessages = cacheMsgs.size();
+				messageDAOS.addAll(cacheMsgs);
 			}
 		}
 
 		if(limit > cachedMessages) {
 			messageDAOS.addAll(
 					messages.queryItems(
-							"SELECT * FROM Messages WHERE Messages.channel=\"" + channel + "\" ORDER BY Messages._ts DESC OFFSET " + (off + cachedMessages) + " LIMIT " + (limit - cachedMessages),
-							new CosmosQueryRequestOptions(), MessageDAO.class
-					)
-					.stream().collect(Collectors.toList())
+									"SELECT * FROM Messages WHERE Messages.channel=\"" + channel + "\" ORDER BY Messages._ts DESC OFFSET " + (off + cachedMessages) + " LIMIT " + (limit - cachedMessages),
+									new CosmosQueryRequestOptions(), MessageDAO.class
+							)
+							.stream().collect(Collectors.toList())
 			);
 		}
 
