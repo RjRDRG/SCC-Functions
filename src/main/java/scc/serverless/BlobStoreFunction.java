@@ -10,8 +10,8 @@ import data.media.MediaBlobLayer;
  */
 public class BlobStoreFunction {
 
-    private boolean started = false;
-    private MediaBlobLayer mediaBlobLayer;
+    private static boolean started = false;
+    private static MediaBlobLayer mediaBlobLayer;
 
     private void start() {
         if(!started) {

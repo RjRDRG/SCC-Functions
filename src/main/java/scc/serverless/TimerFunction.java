@@ -15,9 +15,9 @@ import data.user.UsersDBLayer;
 public class TimerFunction {
 
     private boolean started = false;
-    private MessagesDBLayer messagesDBLayer;
-    private ChannelsDBLayer channelsDBLayer;
-    private UsersDBLayer usersDBLayer;
+    private static MessagesDBLayer messagesDBLayer;
+    private static ChannelsDBLayer channelsDBLayer;
+    private static UsersDBLayer usersDBLayer;
 
     private void start() {
         if(!started) {
@@ -30,6 +30,7 @@ public class TimerFunction {
 
     @FunctionName("gc-channels")
     public void garbageCollectChannels( @TimerTrigger(name = "periodicSetTime", schedule = "0 */1 * * * *") String timerInfo, ExecutionContext context) {
+        start();
         for (ChannelDAO channelDAO : channelsDBLayer.getDeletedChannels()) {
             messagesDBLayer.deleteChannelsMessages(channelDAO.getId());
             channelsDBLayer.delChannelById(channelDAO.getId());
@@ -38,6 +39,7 @@ public class TimerFunction {
 
     @FunctionName("gc-users")
     public void garbageCollectUsers( @TimerTrigger(name = "periodicSetTime", schedule = "0 */1 * * * *") String timerInfo, ExecutionContext context) {
+        start();
         for (UserDAO userDAO : usersDBLayer.getDeletedUsers()) {
             for(MessageDAO msg : messagesDBLayer.getMsgsSentByUser(userDAO.getId())) {
                 msg.setUser("NA");

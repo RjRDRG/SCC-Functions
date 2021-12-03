@@ -107,7 +107,7 @@ public class UsersDBLayer {
 	}
 
     public List<UserDAO> getDeletedUsers() {
-		return users.queryItems("SELECT * FROM Users WHERE garbage=true", new CosmosQueryRequestOptions(), UserDAO.class).stream().collect(Collectors.toList());
+		return users.queryItems("SELECT * FROM Users WHERE Users.garbage=true", new CosmosQueryRequestOptions(), UserDAO.class).stream().collect(Collectors.toList());
 	}
 
 	public void putSession(Session s) {
