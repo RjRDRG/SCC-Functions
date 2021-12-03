@@ -15,13 +15,13 @@ public class BlobStoreFunction {
 
     private void start() {
         if(!started) {
-            mediaBlobLayer = new MediaBlobLayer();
+            mediaBlobLayer = new MediaBlobLayer(true);
             started = true;
         }
     }
 
     @FunctionName("replicate")
-    public void replicateBlobs(
+    public void replicateImageBlobs(
             @BlobTrigger(name = "blobtest", dataType = "binary", path = "images/{name}", connection = "BlobStoreConnection") byte[] content,
             @BindingName("name") String blobname, final ExecutionContext context) {
         start();

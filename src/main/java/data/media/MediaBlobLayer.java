@@ -11,11 +11,18 @@ public class MediaBlobLayer {
 
 	private final BlobContainerClient containerClient;
 
-	public MediaBlobLayer() {
-		this.containerClient = new BlobContainerClientBuilder()
-				.connectionString(System.getenv("BlobStoreConnection"))
-				.containerName("images")
-				.buildClient();
+	public MediaBlobLayer(boolean remote) {
+		if(!remote) {
+			this.containerClient = new BlobContainerClientBuilder()
+					.connectionString(System.getenv("BlobStoreConnection"))
+					.containerName("images")
+					.buildClient();
+		} else {
+			this.containerClient = new BlobContainerClientBuilder()
+					.connectionString(System.getenv("RemoteBlobStoreConnection"))
+					.containerName("images")
+					.buildClient();
+		}
 	}
 
 	public void upload(String id, byte[] contents) {
